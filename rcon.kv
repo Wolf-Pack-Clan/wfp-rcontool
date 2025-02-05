@@ -52,12 +52,13 @@
                 MDNavigationDrawerLabel:
                     text: "Wolf Pack RCON Tool"
                 MDNavigationDrawerItem:
-                    on_release: print("hello from drawer item")
+                    on_release: root.manager.current = "servers"
                     MDNavigationDrawerItemLeadingIcon:
                         icon: "server"
                     MDNavigationDrawerItemText:
                         text: "Servers"
                     MDNavigationDrawerItemTrailingText:
+                        id: svCounter
                         text: "0"
                 
                 MDNavigationDrawerItem:
@@ -88,7 +89,7 @@
                                 text: 'Settings'
                                 pos_hint: {'center_x': .1, 'center_y': .5}
                         MDListItem:
-                            on_release: root.manager.current = "appearance"#print("Appearance Settings")
+                            on_release: root.manager.current = "appearance"
                             MDListItemLeadingIcon:
                                 icon: 'eye'
                             MDListItemSupportingText:
@@ -96,7 +97,7 @@
                             MDListItemTrailingIcon:
                                 icon: 'chevron-right'
                         MDListItem:
-                            on_release: root.manager.current = "about"#print("Appearance Settings")
+                            on_release: root.manager.current = "about"
                             MDListItemLeadingIcon:
                                 icon: 'information'
                             MDListItemSupportingText:
@@ -159,6 +160,58 @@
                 MDListItemSupportingText:
                     text: 'Reset Appearance Settings'
 
+<ServerScreen>:
+    md_bg_color: self.theme_cls.backgroundColor
+    ScrollView:
+        MDList:
+            id: serverList
+            MDTopAppBar:
+                type: 'small'
+                size_hint_x: .8
+                MDTopAppBarLeadingButtonContainer:
+                    MDActionTopAppBarButton:
+                        icon: 'arrow-left'
+                        on_release: root.manager.current = "main"
+                MDTopAppBarTitle:
+                    text: 'Servers'
+                    pos_hint: {'center_x': .1, 'center_y': .5}
+            MDListItem:
+                on_release: root.manager.current = "addserver"
+                MDListItemLeadingIcon:
+                    icon: 'plus'
+                MDListItemSupportingText:
+                    text: 'Add Server'
+
+<AddServerScreen>:
+    md_bg_color: self.theme_cls.backgroundColor
+    ScrollView:
+        MDList:
+            MDTopAppBar:
+                type: 'small'
+                size_hint_x: .8
+                MDTopAppBarLeadingButtonContainer:
+                    MDActionTopAppBarButton:
+                        icon: 'arrow-left'
+                        on_release: root.manager.current = "servers"
+                MDTopAppBarTitle:
+                    text: 'Add Server'
+                    pos_hint: {'center_x': .1, 'center_y': .5}
+            #MDListItem:
+            #    MDListItemSupportingText:
+            #        text: 'Name'
+            MDTextField:
+                mode: 'filled'
+                id: newSrvName
+                #hint_text: "Name"
+                multiline: False
+                write_tab: False
+                #on_text_validate: print("")
+                MDTextFieldHintText:
+                    text: 'Name'
+                MDTextFieldLeadingIcon:
+                    icon: 'format-color-text'
+                
+
 <AboutScreen>:
     md_bg_color: self.theme_cls.backgroundColor
     ScrollView:
@@ -182,7 +235,7 @@
             MDListItem:
                 ripple_effect: False
                 MDLabel:
-                    text: "Links:"
+                    text: "Discord Server"
                 MDCard:
                     style: 'elevated'
                     on_release: openURL("https://discord.com/invite/GDMDTJXaFk")
@@ -195,6 +248,10 @@
                             size_hint: None, None
                             size: "64dp", "64dp"
                             pos_hint: {'center_x': .5, "center_y": .5}
+            MDListItem:
+                ripple_effect: False
+                MDLabel:
+                    text: 'Source Code'
                 MDCard:
                     style: 'elevated'
                     on_release: openURL("https://github.com/Wolf-Pack-Clan/wfp-rcontool")
@@ -207,6 +264,10 @@
                             size_hint: None, None
                             size: "64dp", "64dp"
                             pos_hint: {'center_x': .5, "center_y": .5}
+            MDListItem:
+                ripple_effect: False
+                MDLabel:
+                    text: 'KivyMD'
                 MDCard:
                     style: 'elevated'
                     on_release: openURL("https://github.com/kivymd/KivyMD")

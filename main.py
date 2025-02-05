@@ -1,3 +1,4 @@
+from kivymd.uix.chip.chip import MDIcon
 from kivy.uix.behaviors import ButtonBehavior
 ################ Imports ##################
 from kivy.config import Config
@@ -13,6 +14,8 @@ from kivymd.uix.screen import MDScreen
 from kivymd.uix.transition import MDFadeSlideTransition
 
 from kivymd.uix.menu import MDDropdownMenu
+from kivymd.uix.list import MDListItem, MDListItemSupportingText
+from kivymd.uix.button import MDIconButton
 
 from kivy.core.text import LabelBase
 from kivy.clock import Clock
@@ -23,38 +26,26 @@ from kivy.utils import hex_colormap
 from os import path
 from time import sleep
 import threading
+
+from util import rcon_command, monotone, loadSavedServers, valid_colors
 ###########################################
 
 currentdir = path.dirname(path.realpath(__file__))
+config_path = path.join(currentdir, "saved_servers.json")
 
-myFont = path.join(currentdir, "font/playwritedegrund.ttf")
-dejavu = path.join(currentdir, "font/dejavusans.ttf")
+if not path.isfile(config_path):
+    open(config_path, 'w').close()
 
-global valid_colors
-valid_colors = ['Aliceblue', 'Antiquewhite', 'Aqua', 'Aquamarine', 'Azure',
-                'Beige', 'Bisque', 'Black', 'Blanchedalmond', 'Blue', 'Blueviolet',
-                'Brown', 'Burlywood', 'Cadetblue', 'Chartreuse', 'Chocolate', 'Coral',
-                'Cornflowerblue', 'Cornsilk', 'Crimson', 'Cyan', 'Darkblue', 'Darkcyan',
-                'Darkgoldenrod', 'Darkgray', 'Darkgrey', 'Darkgreen', 'Darkkhaki', 'Darkmagenta',
-                'Darkolivegreen', 'Darkorange', 'Darkorchid', 'Darkred', 'Darksalmon', 'Darkseagreen',
-                'Darkslateblue', 'Darkslategray', 'Darkslategrey', 'Darkturquoise', 'Darkviolet',
-                'Deeppink', 'Deepskyblue', 'Dimgray', 'Dimgrey', 'Dodgerblue', 'Firebrick',
-                'Floralwhite', 'Forestgreen', 'Fuchsia', 'Gainsboro', 'Ghostwhite', 'Gold',
-                'Goldenrod', 'Gray', 'Grey', 'Green', 'Greenyellow', 'Honeydew', 'Hotpink',
-                'Indianred', 'Indigo', 'Ivory', 'Khaki', 'Lavender', 'Lavenderblush', 'Lawngreen',
-                'Lemonchiffon', 'Lightblue', 'Lightcoral', 'Lightcyan', 'Lightgoldenrodyellow',
-                'Lightgreen', 'Lightgray', 'Lightgrey', 'Lightpink', 'Lightsalmon', 'Lightseagreen',
-                'Lightskyblue', 'Lightslategray', 'Lightslategrey', 'Lightsteelblue', 'Lightyellow',
-                'Lime', 'Limegreen', 'Linen', 'Magenta', 'Maroon', 'Mediumaquamarine', 'Mediumblue',
-                'Mediumorchid', 'Mediumpurple', 'Mediumseagreen', 'Mediumslateblue', 'Mediumspringgreen',
-                'Mediumturquoise', 'Mediumvioletred', 'Midnightblue', 'Mintcream', 'Mistyrose',
-                'Moccasin', 'Navajowhite', 'Navy', 'Oldlace', 'Olive', 'Olivedrab', 'Orange',
-                'Orangered', 'Orchid', 'Palegoldenrod', 'Palegreen', 'Paleturquoise', 'Palevioletred',
-                'Papayawhip', 'Peachpuff', 'Peru', 'Pink', 'Plum', 'Powderblue', 'Purple', 'Red',
-                'Rosybrown', 'Royalblue', 'Saddlebrown', 'Salmon', 'Sandybrown', 'Seagreen',
-                'Seashell', 'Sienna', 'Silver', 'Skyblue', 'Slateblue', 'Slategray', 'Slategrey',
-                'Snow', 'Springgreen', 'Steelblue', 'Tan', 'Teal', 'Thistle', 'Tomato', 'Turquoise',
-                'Violet', 'Wheat', 'White', 'Whitesmoke', 'Yellow', 'Yellowgreen']
+savedServers = loadSavedServers(config_path)
+loadedServers = []
+
+global server_ip
+global server_port
+global rcon_password
+server_ip = "1.1.1.1"
+server_port = 28960
+rcon_password = "12345"
+
 global currentColorIndex
 currentColorIndex = 147
 
@@ -62,7 +53,7 @@ currentColorIndex = 147
 
 class MainScreen(MDScreen):
     def on_enter(self, *args):
-        print("hey")
+        print("Main Screen")
         self.console = self.ids.console
         self.cmdInput = self.ids.commandInput
         
@@ -121,6 +112,35 @@ class AppearanceSettings(MDScreen):
         app.theme_cls.theme_style = "Dark"
         app.theme_cls.primary_palette = "Yellowgreen"
 
+class ServerScreen(MDScreen):
+    def on_enter(self, *args):
+        print("Servers Screen")
+        
+        savedServers = loadSavedServers(config_path)
+        if isinstance(savedServers, dict):
+            for server in savedServers:
+                if server in loadedServers:
+                    print("Server already loaded:", server)
+                    continue
+                sv_btn = MDListItem()
+                sv_text = MDListItemSupportingText()
+                sv_text.text = server
+                sv_btn.add_widget(sv_text)
+                sv_del = MDIconButton()
+                sv_del.icon = "delete"
+                sv_del.on_release = lambda x=f"Delete Server: {server}": print(x)
+                sv_btn.on_release = lambda y="hello": print(y)
+                sv_btn.add_widget(sv_del)
+                self.ids.serverList.add_widget(sv_btn)
+                loadedServers.append(server)
+
+class AddServerScreen(MDScreen):
+    def on_enter(self, *args):
+        print("Add Server Screen")
+    
+    def saveNewServer(self, *args):
+        pass
+
 class AboutScreen(MDScreen):
     def on_enter(self, *args):
         print("About Screen")
@@ -142,6 +162,8 @@ class RCONApp(MDApp):
         sm.add_widget(MainScreen(name="main"))
         sm.add_widget(SettingsScreen(name="settings"))
         sm.add_widget(AppearanceSettings(name="appearance"))
+        sm.add_widget(ServerScreen(name="servers"))
+        sm.add_widget(AddServerScreen(name="addserver"))
         sm.add_widget(AboutScreen(name="about"))
         sm.current = "main"
         
@@ -186,7 +208,7 @@ class RCONApp(MDApp):
             }
             colorSet4.append(_colorChoice)
         
-        print(len(colorSet2), len(colorSet1), len(colorSet3), len(colorSet4))
+        #print(len(colorSet2), len(colorSet1), len(colorSet3), len(colorSet4))
         
         return super().on_start()
     
@@ -212,6 +234,4 @@ class RCONApp(MDApp):
             sm.current = sm.previous()
 
 if __name__ == "__main__":
-    LabelBase.register(name="myfont", fn_regular=myFont)
-    LabelBase.register(name="dejavu", fn_regular=dejavu)
     RCONApp().run()
