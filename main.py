@@ -55,7 +55,6 @@ valid_colors = ['Aliceblue', 'Antiquewhite', 'Aqua', 'Aquamarine', 'Azure',
                 'Seashell', 'Sienna', 'Silver', 'Skyblue', 'Slateblue', 'Slategray', 'Slategrey',
                 'Snow', 'Springgreen', 'Steelblue', 'Tan', 'Teal', 'Thistle', 'Tomato', 'Turquoise',
                 'Violet', 'Wheat', 'White', 'Whitesmoke', 'Yellow', 'Yellowgreen']
-print(len(valid_colors))
 global currentColorIndex
 currentColorIndex = 147
 
@@ -73,7 +72,7 @@ class MainScreen(MDScreen):
         app.console = self.console
     
     def callback_exec(self):
-        print(self.cmdInput.focused)#
+        #print(self.cmdInput.focused)#
         threading.Thread(target=self.process_cmd).start()
     
     def process_cmd(self):
@@ -101,21 +100,39 @@ class AppearanceSettings(MDScreen):
         print("Appearance Settings")
     
     def colorMenu(self, set, *args):
-        global colorSet1, colorSet2
+        global colorSet1, colorSet2, colorSet3, colorSet4
         if set == 1:
             menu_items = colorSet1
-        else:
+            _caller = self.ids.colorMenuButton1
+        elif set == 2:
             menu_items = colorSet2
-        MDDropdownMenu(caller=(self.ids.colorMenuButton1 if set == 1 else self.ids.colorMenuButton2), items=menu_items).open()
+            _caller = self.ids.colorMenuButton2
+        elif set == 3:
+            menu_items = colorSet3
+            _caller = self.ids.colorMenuButton3
+        else:
+            menu_items = colorSet4
+            _caller = self.ids.colorMenuButton4
+        MDDropdownMenu(caller=_caller, items=menu_items).open()
+    
+    def resetTheme(self, *args):
+        print("reset")
+        app = MDApp.get_running_app()
+        app.theme_cls.theme_style = "Dark"
+        app.theme_cls.primary_palette = "Yellowgreen"
+
+class AboutScreen(MDScreen):
+    def on_enter(self, *args):
+        print("About Screen")
+        self.ids.WolfPackLogo.source = path.join(currentdir, "icons/wolfpack.png")
+        self.ids.GHLogo.source = path.join(currentdir, "icons/github-mark.png")
+        self.ids.kivyMDLogo.source = path.join(currentdir, "icons/kivymd_logo_blue.png")
 
 class RCONApp(MDApp):
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Yellowgreen"
-        self.theme_cls.secondary_palette = "Purple"
         self.theme_cls.theme_style_switch_animation = True
-        
-        print(hex_colormap)
         
         self.title = "RCON Tool"
         
@@ -125,6 +142,7 @@ class RCONApp(MDApp):
         sm.add_widget(MainScreen(name="main"))
         sm.add_widget(SettingsScreen(name="settings"))
         sm.add_widget(AppearanceSettings(name="appearance"))
+        sm.add_widget(AboutScreen(name="about"))
         sm.current = "main"
         
         Clock.schedule_once(lambda x: Window.bind(on_keyboard=self.onKeyboard))
@@ -133,10 +151,10 @@ class RCONApp(MDApp):
     
     def on_start(self):
         #self.fps_monitor_start()
-        global colorSet1, colorSet2
+        global colorSet1, colorSet2, colorSet3, colorSet4
         global valid_colors
-        colorSet1 = []; colorSet2 = []
-        for _color in valid_colors[:74]:
+        colorSet1 = []; colorSet2 = []; colorSet3 = []; colorSet4 = []
+        for _color in valid_colors[:37]:
             _colorChoice = {
                 "text": _color,
                 "text_color": hex_colormap[_color.lower()],
@@ -144,13 +162,31 @@ class RCONApp(MDApp):
             }
             colorSet1.append(_colorChoice)
         
-        for _color in valid_colors[74:]:
+        for _color in valid_colors[37:74]:
             _colorChoice = {
                 "text": _color,
                 "text_color": hex_colormap[_color.lower()],
                 "on_release": lambda color=_color: self.changePrimaryColor(color=color),
             }
             colorSet2.append(_colorChoice)
+        
+        for _color in valid_colors[74:111]:
+            _colorChoice = {
+                "text": _color,
+                "text_color": hex_colormap[_color.lower()],
+                "on_release": lambda color=_color: self.changePrimaryColor(color=color),
+            }
+            colorSet3.append(_colorChoice)
+        
+        for _color in valid_colors[111:]:
+            _colorChoice = {
+                "text": _color,
+                "text_color": hex_colormap[_color.lower()],
+                "on_release": lambda color=_color: self.changePrimaryColor(color=color),
+            }
+            colorSet4.append(_colorChoice)
+        
+        print(len(colorSet2), len(colorSet1), len(colorSet3), len(colorSet4))
         
         return super().on_start()
     

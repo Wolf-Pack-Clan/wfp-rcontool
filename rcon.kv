@@ -1,4 +1,5 @@
-#:import Window kivy.core.window.Window
+##:import Window kivy.core.window.Window
+#:import openURL webbrowser.open
 
 <MainScreen>:
     md_bg_color: self.theme_cls.backgroundColor
@@ -94,6 +95,14 @@
                                 text: 'Appearance'
                             MDListItemTrailingIcon:
                                 icon: 'chevron-right'
+                        MDListItem:
+                            on_release: root.manager.current = "about"#print("Appearance Settings")
+                            MDListItemLeadingIcon:
+                                icon: 'information'
+                            MDListItemSupportingText:
+                                text: 'About'
+                            MDListItemTrailingIcon:
+                                icon: 'chevron-right'
 
 <AppearanceSettings>:
     md_bg_color: self.theme_cls.backgroundColor
@@ -129,3 +138,84 @@
                     icon: 'format-color-fill'
                 MDListItemSupportingText:
                     text: 'Choose Theme Color (Set 2)'
+            MDListItem:
+                id: colorMenuButton3
+                on_release: root.colorMenu(3)
+                MDListItemLeadingIcon:
+                    icon: 'format-color-fill'
+                MDListItemSupportingText:
+                    text: 'Choose Theme Color (Set 3)'
+            MDListItem:
+                id: colorMenuButton4
+                on_release: root.colorMenu(4)
+                MDListItemLeadingIcon:
+                    icon: 'format-color-fill'
+                MDListItemSupportingText:
+                    text: 'Choose Theme Color (Set 4)'
+            MDListItem:
+                on_release: root.resetTheme()
+                MDListItemLeadingIcon:
+                    icon: 'restore'
+                MDListItemSupportingText:
+                    text: 'Reset Appearance Settings'
+
+<AboutScreen>:
+    md_bg_color: self.theme_cls.backgroundColor
+    ScrollView:
+        MDList:
+            MDTopAppBar:
+                type: 'small'
+                size_hint_x: .8
+                MDTopAppBarLeadingButtonContainer:
+                    MDActionTopAppBarButton:
+                        icon: 'arrow-left'
+                        on_release: root.manager.current = "settings"
+                MDTopAppBarTitle:
+                    text: 'About'
+                    pos_hint: {'center_x': .1, 'center_y': .5}
+            MDListItem:
+                ripple_effect: False
+                MDListItemSupportingText:
+                    multiline: True
+                    text: 'RCON tool for Call of Duty ® (2003) and some other similar games. Made using KivyMD UI toolkit for Python.'
+                
+            MDListItem:
+                ripple_effect: False
+                MDLabel:
+                    text: "Links:"
+                MDCard:
+                    style: 'elevated'
+                    on_release: openURL("https://discord.com/invite/GDMDTJXaFk")
+                    MDRelativeLayout:
+                        MDIcon:
+                            icon: 'arrow-top-right'
+                            pos_hint: {'top': .9, 'right': .95}
+                        FitImage:
+                            id: WolfPackLogo
+                            size_hint: None, None
+                            size: "64dp", "64dp"
+                            pos_hint: {'center_x': .5, "center_y": .5}
+                MDCard:
+                    style: 'elevated'
+                    on_release: openURL("https://github.com/Wolf-Pack-Clan/wfp-rcontool")
+                    MDRelativeLayout:
+                        MDIcon:
+                            icon: 'arrow-top-right'
+                            pos_hint: {'top': .9, 'right': .95}
+                        FitImage:
+                            id: GHLogo
+                            size_hint: None, None
+                            size: "64dp", "64dp"
+                            pos_hint: {'center_x': .5, "center_y": .5}
+                MDCard:
+                    style: 'elevated'
+                    on_release: openURL("https://github.com/kivymd/KivyMD")
+                    MDRelativeLayout:
+                        MDIcon:
+                            icon: 'arrow-top-right'
+                            pos_hint: {'top': .9, 'right': .95}
+                        FitImage:
+                            id: kivyMDLogo
+                            size_hint: None, None
+                            size: "64dp", "64dp"
+                            pos_hint: {'center_x': .5, "center_y": .5}
