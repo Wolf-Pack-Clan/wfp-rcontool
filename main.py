@@ -1,5 +1,3 @@
-from kivymd.uix.chip.chip import MDIcon
-from kivy.uix.behaviors import ButtonBehavior
 ################ Imports ##################
 from kivy.config import Config
 
@@ -22,21 +20,40 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 
 from kivy.utils import hex_colormap
+from kivy import platform
 
 from os import path
+
+if platform == "android":
+    #from android.permissions import request_permissions, Permission # type: ignore
+    from kivymd.toast import toast
+    from android import mActivity # type: ignore
+    context = mActivity.getApplicationContext()
+    result =  context.getExternalFilesDir(None)
+    if result:
+        #toast(str(result.toString()), 10, 80)
+        test = path.join(str(result.toString()), "test")
+        toast(test)
+        open(test, 'w').close()
+
 from time import sleep
 import threading
+import json
 
-from util import rcon_command, monotone, loadSavedServers, valid_colors
+from util import rcon_command, monotone, loadSavedServers, saveServers, valid_colors
 ###########################################
 
 currentdir = path.dirname(path.realpath(__file__))
-config_path = path.join(currentdir, "saved_servers.json")
+svListPath = path.join(currentdir, "saved_servers.json")
+configPath = path.join(currentdir, "settings.json")
 
-if not path.isfile(config_path):
-    open(config_path, 'w').close()
+if not path.isfile(svListPath):
+    open(svListPath, 'w').close()
 
-savedServers = loadSavedServers(config_path)
+if not path.isfile(configPath):
+    open(configPath, 'w').close()
+
+savedServers = loadSavedServers(svListPath)
 loadedServers = []
 
 global server_ip
@@ -61,6 +78,10 @@ class MainScreen(MDScreen):
         
         app = MDApp.get_running_app()
         app.console = self.console
+        if app.theme_cls.theme_style == "Dark":
+            self.console.foreground_color = (1,1,1,1)
+        else:
+            self.console.foreground_color = (0,0,0,1)
     
     def callback_exec(self):
         #print(self.cmdInput.focused)#
@@ -69,10 +90,10 @@ class MainScreen(MDScreen):
     def process_cmd(self):
         app = MDApp.get_running_app()
         self.cmdInput.focus = True
-        Clock.schedule_once(lambda dt: app.settext(self.cmdInput, ""))
+        Clock.schedule_once(lambda arg: app.settext(self.cmdInput, ""))
         threading.Thread(target=self.returnFocus).start()
         if self.cmdInput.text == "clear":
-            Clock.schedule_once(lambda dt: app.settext(self.console, ""))
+            Clock.schedule_once(lambda arg: app.settext(self.console, ""))
     
     def returnFocus(self):
         sleep(0.5)
@@ -106,17 +127,39 @@ class AppearanceSettings(MDScreen):
             _caller = self.ids.colorMenuButton4
         MDDropdownMenu(caller=_caller, items=menu_items).open()
     
+    def tFieldStyleMenu(self, *args):
+        choices = []
+        filledChoice = {
+            "text": "Filled",
+            "on_release": lambda style="filled": self.changeFieldStyle(style)
+        }
+        choices.append(filledChoice)
+        outlinedChoice = {
+            "text": "Outlined",
+            "on_release": lambda style="outlined": self.changeFieldStyle(style)
+        }
+        choices.append(outlinedChoice)
+        _caller = self.ids.fStyleMenuButton
+        MDDropdownMenu(caller=_caller, items=choices).open()
+    
+    def changeFieldStyle(self, style, *args):
+        print(style)
+        app = MDApp.get_running_app()
+        app.textFieldStyle = ("filled" if style == "filled" else "outlined")
+        app.saveAppSettings()
+    
     def resetTheme(self, *args):
         print("reset")
         app = MDApp.get_running_app()
         app.theme_cls.theme_style = "Dark"
         app.theme_cls.primary_palette = "Yellowgreen"
+        app.textFieldStyle = "filled"
 
 class ServerScreen(MDScreen):
     def on_enter(self, *args):
         print("Servers Screen")
         
-        savedServers = loadSavedServers(config_path)
+        savedServers = loadSavedServers(svListPath)
         if isinstance(savedServers, dict):
             for server in savedServers:
                 if server in loadedServers:
@@ -133,10 +176,20 @@ class ServerScreen(MDScreen):
                 sv_btn.add_widget(sv_del)
                 self.ids.serverList.add_widget(sv_btn)
                 loadedServers.append(server)
+    
+    def delServer(self, name, *args):
+        savedServers.pop(name)
+        saveServers(svListPath, savedServers)
 
 class AddServerScreen(MDScreen):
     def on_enter(self, *args):
         print("Add Server Screen")
+    
+    """def on_pre_leave(self, *args):
+        app = MDApp.get_running_app()
+        #Clock.schedule_once(lambda arg: app.saveAppSettings())
+        print("leaving")
+        app.saveAppSettings()"""
     
     def saveNewServer(self, *args):
         pass
@@ -150,9 +203,8 @@ class AboutScreen(MDScreen):
 
 class RCONApp(MDApp):
     def build(self):
-        self.theme_cls.theme_style = "Dark"
-        self.theme_cls.primary_palette = "Yellowgreen"
         self.theme_cls.theme_style_switch_animation = True
+        self.loadAppSettings()
         
         self.title = "RCON Tool"
         
@@ -212,26 +264,64 @@ class RCONApp(MDApp):
         
         return super().on_start()
     
-    def settext(self, element, text):
-        if isinstance(text, str):
-            element.text = text
+    def on_stop(self):
+        print("bye")
+        #Clock.schedule_once(lambda arg: self.saveAppSettings())
+        self.saveAppSettings()
     
-    def toggleDarkMode(self):
-        #app = MDApp.get_running_app()
-        self.theme_cls.theme_style = ("Dark" if self.theme_cls.theme_style == "Light" else "Light")
-        if self.theme_cls.theme_style == "Dark":
-            self.console.foreground_color = (1,1,1,1)
-        else:
-            self.console.foreground_color = (0,0,0,1)
-    
-    def changePrimaryColor(self, color, *args):
-        print(color)
-        self.theme_cls.primary_palette = color
+    def on_pause(self):
+        Clock.schedule_once(lambda arg: self.saveAppSettings())
     
     def onKeyboard(self, window, key, *args):
         if key==27:
             global sm
             sm.current = sm.previous()
+    
+    def settext(self, element, text):
+        if isinstance(text, str):
+            element.text = text
+    
+    def toggleDarkMode(self):
+        self.theme_cls.theme_style = ("Dark" if self.theme_cls.theme_style == "Light" else "Light")
+        if self.theme_cls.theme_style == "Dark":
+            self.console.foreground_color = (1,1,1,1)
+        else:
+            self.console.foreground_color = (0,0,0,1)
+        self.saveAppSettings()
+    
+    def changePrimaryColor(self, color, *args):
+        print(color)
+        self.theme_cls.primary_palette = color
+        self.saveAppSettings()
+    
+    def loadAppSettings(self, *args):
+        with open(configPath, 'r') as configFile:
+            try:
+                appConfig = json.load(configFile)
+                self.theme_cls.theme_style = appConfig["themeStyle"]
+                self.theme_cls.primary_palette = appConfig["themeColor"]
+                self.textFieldStyle = appConfig["textFieldStyle"]
+            except json.JSONDecodeError:
+                self.theme_cls.theme_style = "Dark"
+                self.theme_cls.primary_palette = "Yellowgreen"
+                self.textFieldStyle = "filled"
+                Clock.schedule_once(lambda arg: self.saveAppSettings())
+            except Exception as e:
+                self.errorHandler(e)
+    
+    def saveAppSettings(self, *args):
+        print("I HAVE BEEN SUMMONED")
+        appConfig = {}
+        appConfig["themeStyle"] = self.theme_cls.theme_style
+        appConfig["themeColor"] = self.theme_cls.primary_palette
+        appConfig["textFieldStyle"] = self.textFieldStyle
+        
+        with open(configPath, 'w') as configFile:
+            json.dump(appConfig, configFile, indent=4)
+    
+    def errorHandler(self, errorStr:str, *args):
+        if platform == "android":
+            toast("An unexpected error occured. Check the logs.", 4, 80)
 
 if __name__ == "__main__":
     RCONApp().run()

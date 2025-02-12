@@ -22,7 +22,7 @@
                             text: 'Console'
                             pos_hint: {'center_x': .1, 'center_y': .5}
                     MDTextField:
-                        mode: 'filled'
+                        mode: app.textFieldStyle
                         id: commandInput
                         hint_text: "status"
                         multiline: False
@@ -154,6 +154,13 @@
                 MDListItemSupportingText:
                     text: 'Choose Theme Color (Set 4)'
             MDListItem:
+                id: fStyleMenuButton
+                on_release: root.tFieldStyleMenu()
+                MDListItemLeadingIcon:
+                    icon: 'form-textbox'
+                MDListItemSupportingText:
+                    text: 'Text Field Style (Restart Required)'
+            MDListItem:
                 on_release: root.resetTheme()
                 MDListItemLeadingIcon:
                     icon: 'restore'
@@ -186,6 +193,7 @@
     md_bg_color: self.theme_cls.backgroundColor
     ScrollView:
         MDList:
+            spacing: 12
             MDTopAppBar:
                 type: 'small'
                 size_hint_x: .8
@@ -196,21 +204,46 @@
                 MDTopAppBarTitle:
                     text: 'Add Server'
                     pos_hint: {'center_x': .1, 'center_y': .5}
-            #MDListItem:
-            #    MDListItemSupportingText:
-            #        text: 'Name'
             MDTextField:
-                mode: 'filled'
+                mode: app.textFieldStyle
                 id: newSrvName
-                #hint_text: "Name"
                 multiline: False
                 write_tab: False
-                #on_text_validate: print("")
+                on_text_validate: newSrvIP.focused = True
                 MDTextFieldHintText:
                     text: 'Name'
                 MDTextFieldLeadingIcon:
                     icon: 'format-color-text'
-                
+            MDTextField:
+                mode: app.textFieldStyle
+                id: newSrvIP
+                multiline: False
+                write_tab: False
+                on_text_validate: newSrvPass.focused = True
+                MDTextFieldHintText:
+                    text: 'IP:Port (e.g. 1.1.1.1:28960)'
+                MDTextFieldLeadingIcon:
+                    icon: 'format-color-text'
+            MDTextField:
+                mode: app.textFieldStyle
+                id: newSrvPass
+                multiline: False
+                write_tab: False
+                MDTextFieldHintText:
+                    text: 'RCON Password'
+                MDTextFieldLeadingIcon:
+                    icon: 'lastpass'
+            #MDBoxLayout:
+            #    orientation: 'horizontal'
+            MDButton:
+                pos_hint: {'center_x': .5, 'center_y': .5}
+                style: 'filled'
+                theme_width: "Custom"
+                height: "56dp"
+                width: root.width
+                MDButtonText:
+                    text: 'Add'
+                    pos_hint: {'center_x': .5, 'center_y': .5}
 
 <AboutScreen>:
     md_bg_color: self.theme_cls.backgroundColor
