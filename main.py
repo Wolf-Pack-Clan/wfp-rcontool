@@ -13,14 +13,16 @@ from kivymd.uix.transition import MDFadeSlideTransition
 
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.list import MDListItem, MDListItemSupportingText
-from kivymd.uix.button import MDIconButton
+from kivymd.uix.button import MDIconButton, MDButton
 
 from kivy.core.text import LabelBase
 from kivy.clock import Clock
 from kivy.core.window import Window
+from kivy.uix.widget import Widget
 
 from kivy.utils import hex_colormap
 from kivy import platform
+from kivymd.uix.dialog import MDDialog, MDDialogIcon, MDDialogHeadlineText, MDDialogSupportingText, MDDialogButtonContainer
 
 from os import path
 
@@ -39,6 +41,7 @@ if platform == "android":
 from time import sleep
 import threading
 import json
+from typing import Optional
 
 from util import rcon_command, monotone, loadSavedServers, saveServers, valid_colors
 ###########################################
@@ -55,6 +58,7 @@ if not path.isfile(configPath):
 
 savedServers = loadSavedServers(svListPath)
 loadedServers = []
+loadedSVwidgets = []
 
 global server_ip
 global server_port
@@ -125,7 +129,10 @@ class AppearanceSettings(MDScreen):
         else:
             menu_items = colorSet4
             _caller = self.ids.colorMenuButton4
-        MDDropdownMenu(caller=_caller, items=menu_items).open()
+        
+        global colormenu
+        colormenu = MDDropdownMenu(caller=_caller, items=menu_items)
+        colormenu.open()
     
     def tFieldStyleMenu(self, *args):
         choices = []
@@ -140,12 +147,17 @@ class AppearanceSettings(MDScreen):
         }
         choices.append(outlinedChoice)
         _caller = self.ids.fStyleMenuButton
-        MDDropdownMenu(caller=_caller, items=choices).open()
+        
+        global tfstylemenu
+        tfstylemenu = MDDropdownMenu(caller=_caller, items=choices)
+        tfstylemenu.open()
     
     def changeFieldStyle(self, style, *args):
         print(style)
         app = MDApp.get_running_app()
         app.textFieldStyle = ("filled" if style == "filled" else "outlined")
+        global tfstylemenu
+        tfstylemenu.dismiss()
         app.saveAppSettings()
     
     def resetTheme(self, *args):
@@ -154,6 +166,10 @@ class AppearanceSettings(MDScreen):
         app.theme_cls.theme_style = "Dark"
         app.theme_cls.primary_palette = "Yellowgreen"
         app.textFieldStyle = "filled"
+    
+    def themepreview(self):
+        app:RCONApp = MDApp.get_running_app()
+        app.show_alert_dialog(icon="information", headline="Not Implemented...yet.")
 
 class ServerScreen(MDScreen):
     def on_enter(self, *args):
@@ -171,15 +187,20 @@ class ServerScreen(MDScreen):
                 sv_btn.add_widget(sv_text)
                 sv_del = MDIconButton()
                 sv_del.icon = "delete"
-                sv_del.on_release = lambda x=f"Delete Server: {server}": print(x)
-                sv_btn.on_release = lambda y="hello": print(y)
+                sv_del.on_release = lambda x=server, y=sv_btn: self.delServer(x,y)
+                sv_btn.on_release = lambda z="hello": print(z)
                 sv_btn.add_widget(sv_del)
                 self.ids.serverList.add_widget(sv_btn)
                 loadedServers.append(server)
+                loadedSVwidgets.append(sv_btn)
     
-    def delServer(self, name, *args):
+    def delServer(self, name, widget, *args):
         savedServers.pop(name)
         saveServers(svListPath, savedServers)
+        for _widget in loadedSVwidgets:
+            if widget == _widget:
+                self.ids.serverList.remove_widget(widget)
+                return
 
 class AddServerScreen(MDScreen):
     def on_enter(self, *args):
@@ -192,7 +213,17 @@ class AddServerScreen(MDScreen):
         app.saveAppSettings()"""
     
     def saveNewServer(self, *args):
-        pass
+        name = str(self.ids.newSrvName.text)
+        ip_port = str(self.ids.newSrvIP.text)
+        rcon_pass = str(self.ids.newSrvPass.text)
+        savedServers[name] = {
+            "ip": ip_port,
+            "rcon_pass": rcon_pass
+        }
+        print(savedServers)
+        saveServers(svListPath, savedServers)
+        global sm
+        sm.current = "servers"
 
 class AboutScreen(MDScreen):
     def on_enter(self, *args):
@@ -261,8 +292,24 @@ class RCONApp(MDApp):
             colorSet4.append(_colorChoice)
         
         #print(len(colorSet2), len(colorSet1), len(colorSet3), len(colorSet4))
+        self.show_alert_dialog(icon="information", headline="What's new?", text="You can create and delete servers.\nMenus in settings close after selecting an option.\nThis very popup :D")
         
         return super().on_start()
+    
+    #def show_alert_dialog(self, icon:str, headline:str, text:str):
+    def show_alert_dialog(self, icon: Optional[str] = None, headline: Optional[str] = None, text: Optional[str] = None):
+        """
+        Shows an info dialog with no buttons.
+        """
+        mydialog = MDDialog()
+        if icon:
+            mydialog.add_widget(MDDialogIcon(icon=icon))
+        if headline:
+            mydialog.add_widget(MDDialogHeadlineText(text=headline))
+        if text:
+            mydialog.add_widget(MDDialogSupportingText(text=text))
+        
+        mydialog.open()
     
     def on_stop(self):
         print("bye")
@@ -292,6 +339,9 @@ class RCONApp(MDApp):
     def changePrimaryColor(self, color, *args):
         print(color)
         self.theme_cls.primary_palette = color
+        global colormenu
+        colormenu.dismiss()
+        #sm.get_screen("appearance").ids.colorMenuButton1
         self.saveAppSettings()
     
     def loadAppSettings(self, *args):

@@ -154,6 +154,12 @@
                 MDListItemSupportingText:
                     text: 'Choose Theme Color (Set 4)'
             MDListItem:
+                on_release: root.themepreview()#root.manager.current = "themepreview"
+                MDListItemLeadingIcon:
+                    icon: 'palette'
+                MDListItemSupportingText:
+                    text: 'Theme Previewer'
+            MDListItem:
                 id: fStyleMenuButton
                 on_release: root.tFieldStyleMenu()
                 MDListItemLeadingIcon:
@@ -229,18 +235,19 @@
                 id: newSrvPass
                 multiline: False
                 write_tab: False
+                on_text_validate: root.saveNewServer()
                 MDTextFieldHintText:
                     text: 'RCON Password'
                 MDTextFieldLeadingIcon:
                     icon: 'lastpass'
-            #MDBoxLayout:
-            #    orientation: 'horizontal'
             MDButton:
+                id: addSVbutton
                 pos_hint: {'center_x': .5, 'center_y': .5}
                 style: 'filled'
                 theme_width: "Custom"
                 height: "56dp"
                 width: root.width
+                on_release: root.saveNewServer()
                 MDButtonText:
                     text: 'Add'
                     pos_hint: {'center_x': .5, 'center_y': .5}
