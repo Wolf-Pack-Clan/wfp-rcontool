@@ -10,6 +10,7 @@ RCON tool for Call of Duty ® (2003) and some other similar games. Tested for Co
  - Run `prerequisites.sh`.
  - Open the folder in Visual Studio code.
  - Do **Ctrl**+**Shift**+**B** or Terminal -> Run Build Task...
+![Screenshot_2025-02-16_10-21-16](https://github.com/user-attachments/assets/d2b62a78-c5e7-42e0-88b9-82e04f9d456c)
 
 Alternatively, you can do it yourself from command line as follows:
  ```bash
