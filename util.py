@@ -2,8 +2,27 @@ import socket
 import json
 from re import split as splitstr
 from re import sub
+from os import path
+from datetime import datetime
 
 from kivy.utils import hex_colormap
+from kivy import platform
+from kivymd.app import MDApp
+
+currentdir = path.dirname(path.realpath(__file__))
+svListPath = path.join(currentdir, "saved_servers.json")
+configPath = path.join(currentdir, "settings.json")
+
+logFile = path.join(currentdir, f"logs/log_{str(datetime.now()).replace(' ', '_')}.log")
+if platform == "android":
+    from android import mActivity #type: ignore
+    context = mActivity.getApplicationContext()
+    if context.getExternalFilesDir(None):
+        logFile = path.join(str(context.getExternalFilesDir(None).toString()), f"logs/log_{datetime.now().replace(' ', '_')}.log")
+
+currentIP = "1.1.1.1"
+currentPort = 28960
+currentPass = "password"
 
 #global valid_colors
 valid_colors = ['Aliceblue', 'Antiquewhite', 'Aqua', 'Aquamarine', 'Azure',
@@ -63,8 +82,8 @@ def monotone(name:str):
 #                    Load Config Function                      #
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#
 
-def loadSavedServers(config_path:str):
-    with open(config_path, 'r') as f:
+def loadSavedServers(svListPath:str):
+    with open(svListPath, 'r') as f:
         try:
             savedServers = json.load(f)
             return savedServers
@@ -74,13 +93,22 @@ def loadSavedServers(config_path:str):
                 "ip": "1.1.1.1:28960",
                 "rcon_pass": "12345"
             }
-            saveServers(config_path, savedServers)
+            saveServers(svListPath, savedServers)
             return savedServers
+        except Exception as e:
+            print(e)
+            app = MDApp.get_running_app()
+            app.errorHandler(str(e))
 
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#
 #                    Save Config Function                      #
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#
 
-def saveServers(config_path:str, sdict:dict):
-    with open(config_path, 'w') as f:
+def saveServers(svListPath:str, sdict:dict):
+    with open(svListPath, 'w') as f:
         json.dump(sdict, f, indent=4)
+        f.close()
+
+savedServers = loadSavedServers(svListPath)
+"""loadedServers = []
+loadedSVwidgets = []"""
