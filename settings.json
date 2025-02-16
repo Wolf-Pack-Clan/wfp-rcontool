@@ -1,5 +1,6 @@
 {
     "themeStyle": "Dark",
-    "themeColor": "Yellowgreen",
-    "textFieldStyle": "filled"
+    "themeColor": "Limegreen",
+    "textFieldStyle": "outlined",
+    "whatsold": false
 }

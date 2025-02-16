@@ -11,44 +11,31 @@ from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.transition import MDFadeSlideTransition
 
-from kivymd.uix.menu import MDDropdownMenu
-from kivymd.uix.list import MDListItem, MDListItemSupportingText
-from kivymd.uix.button import MDIconButton, MDButton
-
-from kivy.core.text import LabelBase
 from kivy.clock import Clock
 from kivy.core.window import Window
-from kivy.uix.widget import Widget
 
 from kivy.utils import hex_colormap
 from kivy import platform
-from kivymd.uix.dialog import MDDialog, MDDialogIcon, MDDialogHeadlineText, MDDialogSupportingText, MDDialogButtonContainer
+from kivymd.uix.dialog import MDDialog, MDDialogIcon, MDDialogHeadlineText, MDDialogSupportingText
+
+from settings import SettingsScreen, AppearanceSettings, AboutScreen
+from servers import ServerScreen
 
 from os import path
 
 if platform == "android":
     #from android.permissions import request_permissions, Permission # type: ignore
     from kivymd.toast import toast
-    from android import mActivity # type: ignore
-    context = mActivity.getApplicationContext()
-    result =  context.getExternalFilesDir(None)
-    if result:
-        #toast(str(result.toString()), 10, 80)
-        test = path.join(str(result.toString()), "test")
-        toast(test)
-        open(test, 'w').close()
 
 from time import sleep
 import threading
 import json
 from typing import Optional
 
-from util import rcon_command, monotone, loadSavedServers, saveServers, valid_colors
+from util import rcon_command, monotone, saveServers, valid_colors
+from util import svListPath, configPath, logFile
+import util
 ###########################################
-
-currentdir = path.dirname(path.realpath(__file__))
-svListPath = path.join(currentdir, "saved_servers.json")
-configPath = path.join(currentdir, "settings.json")
 
 if not path.isfile(svListPath):
     open(svListPath, 'w').close()
@@ -56,9 +43,8 @@ if not path.isfile(svListPath):
 if not path.isfile(configPath):
     open(configPath, 'w').close()
 
-savedServers = loadSavedServers(svListPath)
-loadedServers = []
-loadedSVwidgets = []
+if not path.isfile(logFile):
+    open(logFile, 'w').close()
 
 global server_ip
 global server_port
@@ -92,12 +78,25 @@ class MainScreen(MDScreen):
         threading.Thread(target=self.process_cmd).start()
     
     def process_cmd(self):
+        ip = util.currentIP
+        port = util.currentPort
+        rpass = util.currentPass
+        cmd = self.cmdInput.text
+        
+        print(ip, port, rpass)
         app = MDApp.get_running_app()
-        self.cmdInput.focus = True
+        
+        self.cmdInput.focus = False
         Clock.schedule_once(lambda arg: app.settext(self.cmdInput, ""))
+        
         threading.Thread(target=self.returnFocus).start()
-        if self.cmdInput.text == "clear":
+        print(cmd)
+        if cmd == "clear":
             Clock.schedule_once(lambda arg: app.settext(self.console, ""))
+            return
+        result = rcon_command(server_ip=ip, server_port=port, rcon_password=rpass, command=cmd)
+        print(result)
+        Clock.schedule_once(lambda arg: app.settext(self.console, f"{self.console.text}\n{result}"))
     
     def returnFocus(self):
         sleep(0.5)
@@ -106,101 +105,6 @@ class MainScreen(MDScreen):
     def clear_selection(self, instance, touch):
         if self.console.collide_point(*touch.pos):
             self.console.cancel_selection()
-
-class SettingsScreen(MDScreen):
-    def on_enter(self, *args):
-        print("Settings Screen")
-
-class AppearanceSettings(MDScreen):
-    def on_enter(self, *args):
-        print("Appearance Settings")
-    
-    def colorMenu(self, set, *args):
-        global colorSet1, colorSet2, colorSet3, colorSet4
-        if set == 1:
-            menu_items = colorSet1
-            _caller = self.ids.colorMenuButton1
-        elif set == 2:
-            menu_items = colorSet2
-            _caller = self.ids.colorMenuButton2
-        elif set == 3:
-            menu_items = colorSet3
-            _caller = self.ids.colorMenuButton3
-        else:
-            menu_items = colorSet4
-            _caller = self.ids.colorMenuButton4
-        
-        global colormenu
-        colormenu = MDDropdownMenu(caller=_caller, items=menu_items)
-        colormenu.open()
-    
-    def tFieldStyleMenu(self, *args):
-        choices = []
-        filledChoice = {
-            "text": "Filled",
-            "on_release": lambda style="filled": self.changeFieldStyle(style)
-        }
-        choices.append(filledChoice)
-        outlinedChoice = {
-            "text": "Outlined",
-            "on_release": lambda style="outlined": self.changeFieldStyle(style)
-        }
-        choices.append(outlinedChoice)
-        _caller = self.ids.fStyleMenuButton
-        
-        global tfstylemenu
-        tfstylemenu = MDDropdownMenu(caller=_caller, items=choices)
-        tfstylemenu.open()
-    
-    def changeFieldStyle(self, style, *args):
-        print(style)
-        app = MDApp.get_running_app()
-        app.textFieldStyle = ("filled" if style == "filled" else "outlined")
-        global tfstylemenu
-        tfstylemenu.dismiss()
-        app.saveAppSettings()
-    
-    def resetTheme(self, *args):
-        print("reset")
-        app = MDApp.get_running_app()
-        app.theme_cls.theme_style = "Dark"
-        app.theme_cls.primary_palette = "Yellowgreen"
-        app.textFieldStyle = "filled"
-    
-    def themepreview(self):
-        app:RCONApp = MDApp.get_running_app()
-        app.show_alert_dialog(icon="information", headline="Not Implemented...yet.")
-
-class ServerScreen(MDScreen):
-    def on_enter(self, *args):
-        print("Servers Screen")
-        
-        savedServers = loadSavedServers(svListPath)
-        if isinstance(savedServers, dict):
-            for server in savedServers:
-                if server in loadedServers:
-                    print("Server already loaded:", server)
-                    continue
-                sv_btn = MDListItem()
-                sv_text = MDListItemSupportingText()
-                sv_text.text = server
-                sv_btn.add_widget(sv_text)
-                sv_del = MDIconButton()
-                sv_del.icon = "delete"
-                sv_del.on_release = lambda x=server, y=sv_btn: self.delServer(x,y)
-                sv_btn.on_release = lambda z="hello": print(z)
-                sv_btn.add_widget(sv_del)
-                self.ids.serverList.add_widget(sv_btn)
-                loadedServers.append(server)
-                loadedSVwidgets.append(sv_btn)
-    
-    def delServer(self, name, widget, *args):
-        savedServers.pop(name)
-        saveServers(svListPath, savedServers)
-        for _widget in loadedSVwidgets:
-            if widget == _widget:
-                self.ids.serverList.remove_widget(widget)
-                return
 
 class AddServerScreen(MDScreen):
     def on_enter(self, *args):
@@ -216,21 +120,14 @@ class AddServerScreen(MDScreen):
         name = str(self.ids.newSrvName.text)
         ip_port = str(self.ids.newSrvIP.text)
         rcon_pass = str(self.ids.newSrvPass.text)
-        savedServers[name] = {
+        util.savedServers[name] = {
             "ip": ip_port,
             "rcon_pass": rcon_pass
         }
-        print(savedServers)
-        saveServers(svListPath, savedServers)
+        print(util.savedServers)
+        saveServers(svListPath, util.savedServers)
         global sm
         sm.current = "servers"
-
-class AboutScreen(MDScreen):
-    def on_enter(self, *args):
-        print("About Screen")
-        self.ids.WolfPackLogo.source = path.join(currentdir, "icons/wolfpack.png")
-        self.ids.GHLogo.source = path.join(currentdir, "icons/github-mark.png")
-        self.ids.kivyMDLogo.source = path.join(currentdir, "icons/kivymd_logo_blue.png")
 
 class RCONApp(MDApp):
     def build(self):
@@ -239,25 +136,8 @@ class RCONApp(MDApp):
         
         self.title = "RCON Tool"
         
-        global sm
-        sm = MDScreenManager()
-        sm.transition = MDFadeSlideTransition()
-        sm.add_widget(MainScreen(name="main"))
-        sm.add_widget(SettingsScreen(name="settings"))
-        sm.add_widget(AppearanceSettings(name="appearance"))
-        sm.add_widget(ServerScreen(name="servers"))
-        sm.add_widget(AddServerScreen(name="addserver"))
-        sm.add_widget(AboutScreen(name="about"))
-        sm.current = "main"
-        
-        Clock.schedule_once(lambda x: Window.bind(on_keyboard=self.onKeyboard))
-        
-        return sm
-    
-    def on_start(self):
-        #self.fps_monitor_start()
-        global colorSet1, colorSet2, colorSet3, colorSet4
-        global valid_colors
+        # Populating color sets
+        #global colorSet1, colorSet2, colorSet3, colorSet4
         colorSet1 = []; colorSet2 = []; colorSet3 = []; colorSet4 = []
         for _color in valid_colors[:37]:
             _colorChoice = {
@@ -291,8 +171,39 @@ class RCONApp(MDApp):
             }
             colorSet4.append(_colorChoice)
         
+        global sm
+        sm = MDScreenManager()
+        sm.transition = MDFadeSlideTransition()
+        sm.add_widget(MainScreen(name="main"))
+        
+        # Settings
+        sm.add_widget(SettingsScreen(name="settings"))
+        sm.add_widget(AppearanceSettings(name="appearance", colorSets=[colorSet1, colorSet2, colorSet3, colorSet4]))
+        sm.add_widget(AboutScreen(name="about"))
+        # Servers
+        sm.add_widget(ServerScreen(name="servers"))
+        sm.add_widget(AddServerScreen(name="addserver"))
+        
+        sm.current = "main"
+        
+        Clock.schedule_once(lambda x: Window.bind(on_keyboard=self.onKeyboard))
+        
+        return sm
+    
+    def on_start(self):
+        #self.fps_monitor_start()
+        
         #print(len(colorSet2), len(colorSet1), len(colorSet3), len(colorSet4))
-        self.show_alert_dialog(icon="information", headline="What's new?", text="You can create and delete servers.\nMenus in settings close after selecting an option.\nThis very popup :D")
+        if not self.whatsold:
+            changelog = """
+            Basic RCON functionality. See demo video in the github readme.
+            Error Handling system.
+            A ''Purge Logs'' option in settings.
+            This popup only shows once now :D
+            (Not tested on android yet.)
+            """
+            self.show_alert_dialog(icon="information", headline="What's new?", text=changelog)
+            self.whatsold = True
         
         return super().on_start()
     
@@ -339,7 +250,7 @@ class RCONApp(MDApp):
     def changePrimaryColor(self, color, *args):
         print(color)
         self.theme_cls.primary_palette = color
-        global colormenu
+        from settings import colormenu
         colormenu.dismiss()
         #sm.get_screen("appearance").ids.colorMenuButton1
         self.saveAppSettings()
@@ -351,10 +262,12 @@ class RCONApp(MDApp):
                 self.theme_cls.theme_style = appConfig["themeStyle"]
                 self.theme_cls.primary_palette = appConfig["themeColor"]
                 self.textFieldStyle = appConfig["textFieldStyle"]
+                self.whatsold = appConfig["whatsold"]
             except json.JSONDecodeError:
                 self.theme_cls.theme_style = "Dark"
                 self.theme_cls.primary_palette = "Yellowgreen"
                 self.textFieldStyle = "filled"
+                self.whatsold = False
                 Clock.schedule_once(lambda arg: self.saveAppSettings())
             except Exception as e:
                 self.errorHandler(e)
@@ -365,13 +278,21 @@ class RCONApp(MDApp):
         appConfig["themeStyle"] = self.theme_cls.theme_style
         appConfig["themeColor"] = self.theme_cls.primary_palette
         appConfig["textFieldStyle"] = self.textFieldStyle
+        appConfig["whatsold"] = self.whatsold
         
         with open(configPath, 'w') as configFile:
             json.dump(appConfig, configFile, indent=4)
     
-    def errorHandler(self, errorStr:str, *args):
+    def errorHandler(self, errorStr:str):
+        userText = "An unexpected error occured. Check the logs and notify developer."
         if platform == "android":
-            toast("An unexpected error occured. Check the logs.", 4, 80)
+            toast(userText, 4, 80)
+        else:
+            self.show_alert_dialog(icon="skull", headline="ERROR!", text=userText)
+        with open(logFile, 'a') as f:
+            f.write(errorStr + "\n")
+            f.close()
+            
 
 if __name__ == "__main__":
     RCONApp().run()

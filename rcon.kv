@@ -104,6 +104,13 @@
                                 text: 'About'
                             MDListItemTrailingIcon:
                                 icon: 'chevron-right'
+                        MDListItem:
+                            on_release: root.purgeLogs()
+                            MDListItemLeadingIcon:
+                                icon: 'broom'
+                            MDListItemSupportingText:
+                                id: purgeText
+                                text: 'Purge Logs (0)'
 
 <AppearanceSettings>:
     md_bg_color: self.theme_cls.backgroundColor
