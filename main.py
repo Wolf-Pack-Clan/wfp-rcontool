@@ -21,7 +21,7 @@ from kivymd.uix.dialog import MDDialog, MDDialogIcon, MDDialogHeadlineText, MDDi
 from settings import SettingsScreen, AppearanceSettings, AboutScreen
 from servers import ServerScreen
 
-from os import path
+from os import path, mkdir
 
 if platform == "android":
     #from android.permissions import request_permissions, Permission # type: ignore
@@ -42,6 +42,9 @@ if not path.isfile(svListPath):
 
 if not path.isfile(configPath):
     open(configPath, 'w').close()
+
+if not path.isdir(path.dirname(logFile)):
+    mkdir(path.dirname(logFile))
 
 if not path.isfile(logFile):
     open(logFile, 'w').close()
@@ -199,8 +202,8 @@ class RCONApp(MDApp):
             Basic RCON functionality. See demo video in the github readme.
             Error Handling system.
             A ''Purge Logs'' option in settings.
+            Fixed some issues on android.
             This popup only shows once now :D
-            (Not tested on android yet.)
             """
             self.show_alert_dialog(icon="information", headline="What's new?", text=changelog)
             self.whatsold = True

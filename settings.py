@@ -5,17 +5,17 @@ from kivymd.uix.menu import MDDropdownMenu
 from os import path, listdir
 from os import remove as rmfile
 
-from util import currentdir
+from util import currentdir, logFile
 
 class SettingsScreen(MDScreen):
     def on_enter(self, *args):
         print("Settings Screen")
         
-        self.ids.purgeText.text = f"Purge Logs ({len(listdir(path.join(currentdir, 'logs')))})"
+        self.ids.purgeText.text = f"Purge Logs ({len(listdir(path.dirname(logFile)))})"
     
     def purgeLogs(self):
-        for filename in listdir(path.join(currentdir, "logs")):
-            file_path = path.join(path.join(currentdir, "logs"), filename)
+        for filename in listdir(path.dirname(logFile)):
+            file_path = path.join(path.dirname(logFile), filename)
             try:
                 if path.isfile(file_path) or path.islink(file_path):
                     print(filename)
@@ -25,7 +25,7 @@ class SettingsScreen(MDScreen):
                 app = MDApp.get_running_app()
                 app.errorHandler(e)
         
-        self.ids.purgeText.text = f"Purge Logs ({len(listdir(path.join(currentdir, 'logs')))})"
+        self.ids.purgeText.text = f"Purge Logs ({len(listdir(path.dirname(logFile)))})"
 
 class AppearanceSettings(MDScreen):
     colorSets = ListProperty()
