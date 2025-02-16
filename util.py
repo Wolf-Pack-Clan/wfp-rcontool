@@ -18,7 +18,7 @@ if platform == "android":
     from android import mActivity #type: ignore
     context = mActivity.getApplicationContext()
     if context.getExternalFilesDir(None):
-        logFile = path.join(str(context.getExternalFilesDir(None).toString()), f"logs/log_{datetime.now().replace(' ', '_')}.log")
+        logFile = path.join(str(context.getExternalFilesDir(None).toString()), f"logs/log_{str(datetime.now()).replace(' ', '_')}.log")
 
 currentIP = "1.1.1.1"
 currentPort = 28960
