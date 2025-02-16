@@ -6,10 +6,14 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "source bin/activate && buildozer -v android debug",
+            "command": "chdmod +x prerequisites.sh && ./prerequisites.sh && buildozer -v android debug",
             "problemMatcher": [
                 "$python"
-            ]
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }
