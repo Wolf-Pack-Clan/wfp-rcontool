@@ -6,7 +6,7 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "chdmod +x prerequisites.sh && ./prerequisites.sh && buildozer -v android debug",
+            "command": "chmod +x prerequisites.sh && ./prerequisites.sh && buildozer -v android debug",
             "problemMatcher": [
                 "$python"
             ],
