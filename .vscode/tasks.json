@@ -1,12 +1,13 @@
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
+    // TODO: create for windows
     "version": "2.0.0",
     "tasks": [
         {
             "label": "build",
             "type": "shell",
-            "command": "chmod +x prerequisites.sh && ./prerequisites.sh && buildozer -v android debug",
+            "command": "source bin/activate && buildozer -v android debug",
             "problemMatcher": [
                 "$python"
             ],
