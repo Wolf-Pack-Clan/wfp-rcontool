@@ -57,10 +57,11 @@ class ServerScreen(MDScreen):
             util.currentPort = int(tmp[1].strip())
             util.currentPass = password
             print(util.currentIP, util.currentPort, util.currentPass)
+            self.manager.current = "main"
         except Exception as e:
             print(e)
             app = MDApp.get_running_app()
-            app.errorHandler(e)
+            app.errorHandler(e, "activateServer")
     
     def delServer(self, name, widget):
         savedServers.pop(name)
@@ -72,3 +73,25 @@ class ServerScreen(MDScreen):
         for server in loadedServers:
             if name == server:
                 loadedServers.remove(name)
+
+class AddServerScreen(MDScreen):
+    def on_enter(self, *args):
+        print("Add Server Screen")
+    
+    """def on_pre_leave(self, *args):
+        app = MDApp.get_running_app()
+        #Clock.schedule_once(lambda arg: app.saveAppSettings())
+        print("leaving")
+        app.saveAppSettings()"""
+    
+    def saveNewServer(self, *args):
+        name = str(self.ids.newSrvName.text)
+        ip_port = str(self.ids.newSrvIP.text)
+        rcon_pass = str(self.ids.newSrvPass.text)
+        util.savedServers[name] = {
+            "ip": ip_port,
+            "rcon_pass": rcon_pass
+        }
+        print(util.savedServers)
+        saveServers(svListPath, util.savedServers)
+        self.manager.current = "servers"

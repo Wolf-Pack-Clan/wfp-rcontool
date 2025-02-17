@@ -19,7 +19,7 @@ from kivy import platform
 from kivymd.uix.dialog import MDDialog, MDDialogIcon, MDDialogHeadlineText, MDDialogSupportingText
 
 from settings import SettingsScreen, AppearanceSettings, AboutScreen
-from servers import ServerScreen
+from servers import ServerScreen, AddServerScreen
 
 from os import path, mkdir
 
@@ -108,29 +108,6 @@ class MainScreen(MDScreen):
     def clear_selection(self, instance, touch):
         if self.console.collide_point(*touch.pos):
             self.console.cancel_selection()
-
-class AddServerScreen(MDScreen):
-    def on_enter(self, *args):
-        print("Add Server Screen")
-    
-    """def on_pre_leave(self, *args):
-        app = MDApp.get_running_app()
-        #Clock.schedule_once(lambda arg: app.saveAppSettings())
-        print("leaving")
-        app.saveAppSettings()"""
-    
-    def saveNewServer(self, *args):
-        name = str(self.ids.newSrvName.text)
-        ip_port = str(self.ids.newSrvIP.text)
-        rcon_pass = str(self.ids.newSrvPass.text)
-        util.savedServers[name] = {
-            "ip": ip_port,
-            "rcon_pass": rcon_pass
-        }
-        print(util.savedServers)
-        saveServers(svListPath, util.savedServers)
-        global sm
-        sm.current = "servers"
 
 class RCONApp(MDApp):
     def build(self):
@@ -273,7 +250,7 @@ class RCONApp(MDApp):
                 self.whatsold = False
                 Clock.schedule_once(lambda arg: self.saveAppSettings())
             except Exception as e:
-                self.errorHandler(e)
+                self.errorHandler(e, "loadAppSettings")
     
     def saveAppSettings(self, *args):
         print("I HAVE BEEN SUMMONED")
@@ -286,14 +263,14 @@ class RCONApp(MDApp):
         with open(configPath, 'w') as configFile:
             json.dump(appConfig, configFile, indent=4)
     
-    def errorHandler(self, errorStr:str):
+    def errorHandler(self, error, origin:str):
         userText = "An unexpected error occured. Check the logs and notify developer."
         if platform == "android":
             toast(userText, 4, 80)
         else:
             self.show_alert_dialog(icon="skull", headline="ERROR!", text=userText)
         with open(logFile, 'a') as f:
-            f.write(errorStr + "\n")
+            f.write(f"{str(error)} @ {origin}\n")
             f.close()
             
 

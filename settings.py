@@ -14,7 +14,7 @@ class SettingsScreen(MDScreen):
         self.ids.purgeText.text = f"Purge Logs ({len(listdir(path.dirname(logFile)))})"
     
     def purgeLogs(self):
-        for filename in listdir(path.dirname(logFile)):
+        for filename in listdir(path.dirname(logFile))[:-1]:
             file_path = path.join(path.dirname(logFile), filename)
             try:
                 if path.isfile(file_path) or path.islink(file_path):
@@ -23,7 +23,7 @@ class SettingsScreen(MDScreen):
             except Exception as e:
                 print(e)
                 app = MDApp.get_running_app()
-                app.errorHandler(e)
+                app.errorHandler(e, "purgeLogs")
         
         self.ids.purgeText.text = f"Purge Logs ({len(listdir(path.dirname(logFile)))})"
 

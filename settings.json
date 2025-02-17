@@ -2,5 +2,5 @@
     "themeStyle": "Dark",
     "themeColor": "Limegreen",
     "textFieldStyle": "outlined",
-    "whatsold": true
+    "whatsold": false
 }

@@ -98,7 +98,7 @@ def loadSavedServers(svListPath:str):
         except Exception as e:
             print(e)
             app = MDApp.get_running_app()
-            app.errorHandler(str(e))
+            app.errorHandler(e, "loadSavedServers")
 
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#
 #                    Save Config Function                      #
