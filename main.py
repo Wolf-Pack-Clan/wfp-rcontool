@@ -18,7 +18,7 @@ from kivy.utils import hex_colormap
 from kivy import platform
 from kivymd.uix.dialog import MDDialog, MDDialogIcon, MDDialogHeadlineText, MDDialogSupportingText
 
-from settings import SettingsScreen, AppearanceSettings, AboutScreen
+from settings import SettingsScreen, AppearanceSettings, ThemeColorPreview, AboutScreen
 from servers import ServerScreen, AddServerScreen
 
 from os import path, mkdir
@@ -75,6 +75,7 @@ class MainScreen(MDScreen):
             self.console.foreground_color = (1,1,1,1)
         else:
             self.console.foreground_color = (0,0,0,1)
+        self.ids.svCounter.text = str(len(util.savedServers))
     
     def callback_exec(self):
         #print(self.cmdInput.focused)#
@@ -159,6 +160,7 @@ class RCONApp(MDApp):
         # Settings
         sm.add_widget(SettingsScreen(name="settings"))
         sm.add_widget(AppearanceSettings(name="appearance", colorSets=[colorSet1, colorSet2, colorSet3, colorSet4]))
+        sm.add_widget(ThemeColorPreview(name="themepreview"))
         sm.add_widget(AboutScreen(name="about"))
         # Servers
         sm.add_widget(ServerScreen(name="servers"))
@@ -176,11 +178,11 @@ class RCONApp(MDApp):
         #print(len(colorSet2), len(colorSet1), len(colorSet3), len(colorSet4))
         if not self.whatsold:
             changelog = """
-            Basic RCON functionality. See demo video in the github readme.
-            Error Handling system.
-            A ''Purge Logs'' option in settings.
-            Fixed some issues on android.
-            This popup only shows once now :D
+            Improved errorHandler.
+            Purge Logs option keeps the last log file.
+            Working server counter.
+            Working Theme Color Previewer.
+            Server Options drawer on right side of main screen.
             """
             self.show_alert_dialog(icon="information", headline="What's new?", text=changelog)
             self.whatsold = True
@@ -190,7 +192,7 @@ class RCONApp(MDApp):
     #def show_alert_dialog(self, icon:str, headline:str, text:str):
     def show_alert_dialog(self, icon: Optional[str] = None, headline: Optional[str] = None, text: Optional[str] = None):
         """
-        Shows an info dialog with no buttons.
+        Shows an info or error dialog with no buttons.
         """
         mydialog = MDDialog()
         if icon:

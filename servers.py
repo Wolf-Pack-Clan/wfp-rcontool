@@ -4,7 +4,7 @@ from kivymd.uix.list import MDListItem, MDListItemSupportingText
 from kivymd.uix.button import MDIconButton
 from kivymd.app import MDApp
 
-from util import savedServers, saveServers, loadSavedServers, svListPath
+from util import saveServers, loadSavedServers, svListPath
 import util
 
 loadedServers = []
@@ -21,9 +21,9 @@ class ServerScreen(MDScreen):
     def on_enter(self, *args):
         print("Servers Screen")
         
-        savedServers = loadSavedServers(svListPath)
-        if isinstance(savedServers, dict):
-            for server in savedServers:
+        util.savedServers = loadSavedServers(svListPath)
+        if isinstance(util.savedServers, dict):
+            for server in util.savedServers:
                 if server in loadedServers:
                     print("Server already loaded:", server)
                     continue
@@ -38,8 +38,8 @@ class ServerScreen(MDScreen):
                 sv_del.on_release = lambda x=server, y=sv_btn: self.delServer(x,y)
                 sv_btn.add_widget(sv_del)
                 
-                sv_btn.svIP = savedServers[server].get("ip")
-                sv_btn.svRPass = savedServers[server].get("rcon_pass")
+                sv_btn.svIP = util.savedServers[server].get("ip")
+                sv_btn.svRPass = util.savedServers[server].get("rcon_pass")
                 sv_btn.on_release = lambda z=sv_btn: self.activateServer(z)
                 
                 self.ids.serverList.add_widget(sv_btn)
@@ -64,8 +64,8 @@ class ServerScreen(MDScreen):
             app.errorHandler(e, "activateServer")
     
     def delServer(self, name, widget):
-        savedServers.pop(name)
-        saveServers(svListPath, savedServers)
+        util.savedServers.pop(name)
+        saveServers(svListPath, util.savedServers)
         for _widget in loadedSVwidgets:
             if widget == _widget:
                 self.ids.serverList.remove_widget(widget)

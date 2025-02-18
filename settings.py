@@ -1,7 +1,12 @@
+from kivy.uix.actionbar import ColorProperty
+from kivy.uix.actionbar import BoxLayout
 from kivy.uix.accordion import ListProperty
 from kivymd.uix.screen import MDScreen
 from kivymd.app import MDApp
 from kivymd.uix.menu import MDDropdownMenu
+from kivy.properties import StringProperty, ColorProperty
+from kivymd.dynamic_color import DynamicColor
+from kivy.clock import Clock
 from os import path, listdir
 from os import remove as rmfile
 
@@ -41,9 +46,13 @@ class AppearanceSettings(MDScreen):
         self.colorSet2 = colorSets[1]
         self.colorSet3 = colorSets[2]
         self.colorSet4 = colorSets[3]
+
+        app = MDApp.get_running_app()
+        app.theme_cls.schemes_name_colors = [attr for attr in vars(DynamicColor) if not callable(getattr(DynamicColor, attr)) and not attr.startswith("__")]
     
     def on_enter(self, *args):
         print("Appearance Settings")
+        #print(self.theme_cls.schemes_name_colors)
     
     def colorMenu(self, set, *args):
         if set == 1:
@@ -99,6 +108,35 @@ class AppearanceSettings(MDScreen):
     def themepreview(self):
         app = MDApp.get_running_app()
         app.show_alert_dialog(icon="information", headline="Not Implemented...yet.")
+
+class ColorCard(BoxLayout):
+    text = StringProperty()
+    bg_color = ColorProperty()
+
+class ThemeColorPreview(MDScreen):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        #Clock.schedule_once(self.generate_cards)
+    
+    def on_pre_enter(self):
+        Clock.schedule_once(self.generate_cards)
+    
+    def on_enter(self, *args):
+        print("Theme Color Preview Screen")
+    
+    def generate_cards(self, *args) -> None:
+        app = MDApp.get_running_app()
+        self.ids.card_list.data = []
+        for color in app.theme_cls.schemes_name_colors:
+            value = f"{color}"
+            print(getattr(app.theme_cls, value))
+            self.ids.card_list.data.extend(
+                [{
+                    "bg_color": getattr(app.theme_cls, value),
+                    "text": value,
+                }]
+            )
 
 class AboutScreen(MDScreen):
     def on_enter(self, *args):

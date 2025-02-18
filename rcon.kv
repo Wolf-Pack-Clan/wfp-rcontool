@@ -69,6 +69,34 @@
                         text: 'Settings'
                 
                 MDNavigationDrawerDivider:
+        MDNavigationDrawer:
+            radius: 0, dp(16), dp(16), 0
+            type: 'modal'
+            anchor: 'right'
+            MDNavigationDrawerMenu:
+                MDNavigationDrawerLabel:
+                    text: "Server Options"
+                MDNavigationDrawerItem:
+                    #on_release: root.manager.current = "servers"
+                    MDNavigationDrawerItemLeadingIcon:
+                        icon: "map"
+                    MDNavigationDrawerItemText:
+                        text: "Maps"
+                    MDNavigationDrawerItemTrailingText:
+                        id: mapCounter
+                        text: "0"
+                
+                MDNavigationDrawerItem:
+                    #on_release: root.manager.current = "settings"
+                    MDNavigationDrawerItemLeadingIcon:
+                        icon: 'account-multiple'
+                    MDNavigationDrawerItemText:
+                        text: 'Players'
+                    MDNavigationDrawerItemTrailingText:
+                        id: playerCounter
+                        text: "0"
+                
+                MDNavigationDrawerDivider:
 
 <SettingsScreen>:
     md_bg_color: self.theme_cls.backgroundColor
@@ -161,11 +189,11 @@
                 MDListItemSupportingText:
                     text: 'Choose Theme Color (Set 4)'
             MDListItem:
-                on_release: root.themepreview()#root.manager.current = "themepreview"
+                on_release: root.manager.current = "themepreview"
                 MDListItemLeadingIcon:
                     icon: 'palette'
                 MDListItemSupportingText:
-                    text: 'Theme Previewer'
+                    text: 'Theme Color Previewer'
             MDListItem:
                 id: fStyleMenuButton
                 on_release: root.tFieldStyleMenu()
@@ -179,6 +207,57 @@
                     icon: 'restore'
                 MDListItemSupportingText:
                     text: 'Reset Appearance Settings'
+
+<ColorCard>
+    orientation: "vertical"
+    spacing: 20
+    size_hint_y: None
+    height: "60dp"
+    radius: [15]
+
+    MDLabel:
+        text: root.text
+        color: "grey"
+
+    MDCard:
+        theme_bg_color: "Custom"
+        md_bg_color: root.bg_color
+        size_hint_y: None
+        height: "45dp"
+
+<ThemeColorPreview>:
+    md_bg_color: self.theme_cls.backgroundColor
+    #md_bg_color: app.theme_cls.surfaceContainerLowColor
+    MDTopAppBar:
+        type: 'small'
+        size_hint_x: 1
+        pos_hint: {'top': 1}
+        MDTopAppBarLeadingButtonContainer:
+            MDActionTopAppBarButton:
+                icon: 'arrow-left'
+                on_release: root.manager.current = "appearance"
+        MDTopAppBarTitle:
+            text: 'Appearance Settings'
+            pos_hint: {'center_x': .1, 'center_y': .5}
+    #MDIconButton:
+    #    on_release: root.manager.current = "appearance"
+    #    pos_hint: {"top": .98}
+    #    x: "12dp"
+    #    icon: "arrow-left"
+    MDRecycleView:
+        id: card_list
+        viewclass: "ColorCard"
+        bar_width: 0
+        size_hint: 1, 0.9
+
+        RecycleGridLayout:
+            cols: 2
+            spacing: 50
+            padding: [25, 45, 25, 100]
+            default_size: None, dp(56)
+            default_size_hint: 1, None
+            size_hint: 1, None
+            height: self.minimum_height
 
 <ServerScreen>:
     md_bg_color: self.theme_cls.backgroundColor
