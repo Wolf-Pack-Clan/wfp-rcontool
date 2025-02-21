@@ -14,11 +14,13 @@ svListPath = path.join(currentdir, "saved_servers.json")
 configPath = path.join(currentdir, "settings.json")
 
 logFile = path.join(currentdir, f"logs/log_{str(datetime.now()).replace(' ', '_')}.log")
+imagesPath = path.join(currentdir, "mapimages/")
 if platform == "android":
     from android import mActivity #type: ignore
     context = mActivity.getApplicationContext()
     if context.getExternalFilesDir(None):
         logFile = path.join(str(context.getExternalFilesDir(None).toString()), f"logs/log_{str(datetime.now()).replace(' ', '_')}.log")
+        imagesPath = path.join(str(context.getExternalFilesDir(None).toString()), "mapimages/")
 
 currentIP = "1.1.1.1"
 currentPort = 28960
@@ -50,6 +52,9 @@ valid_colors = ['Aliceblue', 'Antiquewhite', 'Aqua', 'Aquamarine', 'Azure',
                 'Snow', 'Springgreen', 'Steelblue', 'Tan', 'Teal', 'Thistle', 'Tomato', 'Turquoise',
                 'Violet', 'Wheat', 'White', 'Whitesmoke', 'Yellow', 'Yellowgreen']
 
+svMaps = []
+svPlayers = []
+
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#
 #                    RCON Command Function                      #
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#
@@ -77,6 +82,18 @@ def rcon_command(server_ip:str="1.1.1.1", server_port:int=0, rcon_password:str="
 def monotone(name:str):
 	name = sub(r'\^\^([0-7]{2})|\^([0-7]{1})|\^', '', name)
 	return name
+
+def getMaps():
+    try:
+        response = rcon_command(server_ip=currentIP, server_port=currentPort, rcon_password=currentPass, command="dir maps/mp")
+        tmp = response.splitlines()
+        for key in tmp:
+            if key.endswith("bsp"):
+                svMaps.append(key[:-4])
+    except Exception as e:
+        print(e)
+        app = MDApp.get_running_app()
+        app.errorHandler(e, "getMaps")
 
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#
 #                    Load Config Function                      #

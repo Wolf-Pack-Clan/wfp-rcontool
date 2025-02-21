@@ -32,6 +32,10 @@ class SettingsScreen(MDScreen):
         
         self.ids.purgeText.text = f"Purge Logs ({len(listdir(path.dirname(logFile)))})"
 
+class GeneralSettings(MDScreen):
+    def on_enter(self):
+        print("Status Settings Screen")
+
 class AppearanceSettings(MDScreen):
     colorSets = ListProperty()
     """
@@ -116,21 +120,19 @@ class ColorCard(BoxLayout):
 class ThemeColorPreview(MDScreen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        #Clock.schedule_once(self.generate_cards)
     
     def on_pre_enter(self):
-        Clock.schedule_once(self.generate_cards)
+        Clock.schedule_once(self.genColorCards)
     
     def on_enter(self, *args):
         print("Theme Color Preview Screen")
     
-    def generate_cards(self, *args) -> None:
+    def genColorCards(self, *args) -> None:
         app = MDApp.get_running_app()
         self.ids.card_list.data = []
         for color in app.theme_cls.schemes_name_colors:
             value = f"{color}"
-            print(getattr(app.theme_cls, value))
+            #print(getattr(app.theme_cls, value))
             self.ids.card_list.data.extend(
                 [{
                     "bg_color": getattr(app.theme_cls, value),

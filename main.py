@@ -18,13 +18,13 @@ from kivy.utils import hex_colormap
 from kivy import platform
 from kivymd.uix.dialog import MDDialog, MDDialogIcon, MDDialogHeadlineText, MDDialogSupportingText
 
-from settings import SettingsScreen, AppearanceSettings, ThemeColorPreview, AboutScreen
+from maps import MapScreen
+from settings import SettingsScreen, GeneralSettings, AppearanceSettings, ThemeColorPreview, AboutScreen
 from servers import ServerScreen, AddServerScreen
 
 from os import path, mkdir
 
 if platform == "android":
-    #from android.permissions import request_permissions, Permission # type: ignore
     from kivymd.toast import toast
 
 from time import sleep
@@ -49,6 +49,9 @@ if not path.isdir(path.dirname(logFile)):
 if not path.isfile(logFile):
     open(logFile, 'w').close()
 
+if not path.isdir(util.imagesPath):
+    mkdir(util.imagesPath)
+
 global server_ip
 global server_port
 global rcon_password
@@ -62,7 +65,7 @@ currentColorIndex = 147
 ########################################################
 
 class MainScreen(MDScreen):
-    def on_enter(self, *args):
+    def on_enter(self):
         print("Main Screen")
         self.console = self.ids.console
         self.cmdInput = self.ids.commandInput
@@ -101,6 +104,8 @@ class MainScreen(MDScreen):
         result = rcon_command(server_ip=ip, server_port=port, rcon_password=rpass, command=cmd)
         print(result)
         Clock.schedule_once(lambda arg: app.settext(self.console, f"{self.console.text}\n{result}"))
+        if cmd == "status":
+            Clock.schedule_once(lambda arg: util.getMaps())
     
     def returnFocus(self):
         sleep(0.5)
@@ -118,7 +123,6 @@ class RCONApp(MDApp):
         self.title = "RCON Tool"
         
         # Populating color sets
-        #global colorSet1, colorSet2, colorSet3, colorSet4
         colorSet1 = []; colorSet2 = []; colorSet3 = []; colorSet4 = []
         for _color in valid_colors[:37]:
             _colorChoice = {
@@ -157,8 +161,11 @@ class RCONApp(MDApp):
         sm.transition = MDFadeSlideTransition()
         sm.add_widget(MainScreen(name="main"))
         
+        # Maps
+        sm.add_widget(MapScreen(name="mapscreen"))
         # Settings
         sm.add_widget(SettingsScreen(name="settings"))
+        sm.add_widget(GeneralSettings(name="generalsettings"))
         sm.add_widget(AppearanceSettings(name="appearance", colorSets=[colorSet1, colorSet2, colorSet3, colorSet4]))
         sm.add_widget(ThemeColorPreview(name="themepreview"))
         sm.add_widget(AboutScreen(name="about"))
@@ -178,18 +185,16 @@ class RCONApp(MDApp):
         #print(len(colorSet2), len(colorSet1), len(colorSet3), len(colorSet4))
         if not self.whatsold:
             changelog = """
-            Improved errorHandler.
-            Purge Logs option keeps the last log file.
-            Working server counter.
-            Working Theme Color Previewer.
-            Server Options drawer on right side of main screen.
+            Small UI improvements.
+            Note: Don't open 'Maps'. You are warned...
             """
             self.show_alert_dialog(icon="information", headline="What's new?", text=changelog)
             self.whatsold = True
         
+        Window.size = (Window.size[0] + 2, Window.size[1])
+        
         return super().on_start()
     
-    #def show_alert_dialog(self, icon:str, headline:str, text:str):
     def show_alert_dialog(self, icon: Optional[str] = None, headline: Optional[str] = None, text: Optional[str] = None):
         """
         Shows an info or error dialog with no buttons.
@@ -206,11 +211,7 @@ class RCONApp(MDApp):
     
     def on_stop(self):
         print("bye")
-        #Clock.schedule_once(lambda arg: self.saveAppSettings())
         self.saveAppSettings()
-    
-    def on_pause(self):
-        Clock.schedule_once(lambda arg: self.saveAppSettings())
     
     def onKeyboard(self, window, key, *args):
         if key==27:
@@ -229,15 +230,14 @@ class RCONApp(MDApp):
             self.console.foreground_color = (0,0,0,1)
         self.saveAppSettings()
     
-    def changePrimaryColor(self, color, *args):
+    def changePrimaryColor(self, color):
         print(color)
         self.theme_cls.primary_palette = color
-        from settings import colormenu
-        colormenu.dismiss()
-        #sm.get_screen("appearance").ids.colorMenuButton1
+        import settings
+        settings.colormenu.dismiss()
         self.saveAppSettings()
     
-    def loadAppSettings(self, *args):
+    def loadAppSettings(self):
         with open(configPath, 'r') as configFile:
             try:
                 appConfig = json.load(configFile)
@@ -254,7 +254,7 @@ class RCONApp(MDApp):
             except Exception as e:
                 self.errorHandler(e, "loadAppSettings")
     
-    def saveAppSettings(self, *args):
+    def saveAppSettings(self):
         print("I HAVE BEEN SUMMONED")
         appConfig = {}
         appConfig["themeStyle"] = self.theme_cls.theme_style
@@ -274,7 +274,6 @@ class RCONApp(MDApp):
         with open(logFile, 'a') as f:
             f.write(f"{str(error)} @ {origin}\n")
             f.close()
-            
 
 if __name__ == "__main__":
     RCONApp().run()

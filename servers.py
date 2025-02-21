@@ -1,6 +1,6 @@
 from kivy.uix.accordion import StringProperty
 from kivymd.uix.screen import MDScreen
-from kivymd.uix.list import MDListItem, MDListItemSupportingText
+from kivymd.uix.list import MDListItem, MDListItemSupportingText, MDListItemLeadingIcon
 from kivymd.uix.button import MDIconButton
 from kivymd.app import MDApp
 
@@ -32,6 +32,9 @@ class ServerScreen(MDScreen):
                 sv_text = MDListItemSupportingText()
                 sv_text.text = server
                 sv_btn.add_widget(sv_text)
+                sv_btn_icon = MDListItemLeadingIcon()
+                sv_btn_icon.icon = "server-outline"
+                sv_btn.add_widget(sv_btn_icon)
                 
                 sv_del = MDIconButton()
                 sv_del.icon = "delete"

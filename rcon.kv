@@ -13,14 +13,18 @@
                     spacing: 2
                     MDTopAppBar:
                         type: 'small'
-                        size_hint_x: .8
+                        size_hint_x: 1
                         MDTopAppBarLeadingButtonContainer:
                             MDActionTopAppBarButton:
                                 icon: 'menu'
-                                on_release: nav_drawer.set_state("toggle")
+                                on_release: left_drawer.set_state("toggle")
                         MDTopAppBarTitle:
                             text: 'Console'
-                            pos_hint: {'center_x': .1, 'center_y': .5}
+                            pos_hint: {'center_x': .5, 'center_y': .5}
+                        MDTopAppBarTrailingButtonContainer:
+                            MDActionTopAppBarButton:
+                                icon: 'menu'
+                                on_release: right_drawer.set_state("toggle")
                     MDTextField:
                         mode: app.textFieldStyle
                         id: commandInput
@@ -38,14 +42,9 @@
                         background_color: root.theme_cls.backgroundColor
                         foreground_color: (1,1,1,1)
                         scroll_y: 0
-                        text: "Try typing `clear` command.\n\n\n\nMake sure text fields look interactive\nTwo types: filled and outlined\nThe text field state (blank, with input, error, etc) should be visible at a glance\nKeep labels and error messages brief and easy to act on\nText fields commonly appear in forms and dialogs"
-                MDButton:
-                    pos_hint: {"center_x": .5, "center_y": .5}
-                    on_release: nav_drawer.set_state("toggle")#root.callback_exec()#
-                    MDButtonText:
-                        text: "Open Drawer"
+                        text: "Try typing `clear` command.\n\n"
         MDNavigationDrawer:
-            id: nav_drawer
+            id: left_drawer
             radius: 0, dp(16), dp(16), 0
             type: 'modal'
             MDNavigationDrawerMenu:
@@ -70,6 +69,7 @@
                 
                 MDNavigationDrawerDivider:
         MDNavigationDrawer:
+            id: right_drawer
             radius: 0, dp(16), dp(16), 0
             type: 'modal'
             anchor: 'right'
@@ -77,7 +77,7 @@
                 MDNavigationDrawerLabel:
                     text: "Server Options"
                 MDNavigationDrawerItem:
-                    #on_release: root.manager.current = "servers"
+                    on_release: root.manager.current = "mapscreen"
                     MDNavigationDrawerItemLeadingIcon:
                         icon: "map"
                     MDNavigationDrawerItemText:
@@ -98,6 +98,47 @@
                 
                 MDNavigationDrawerDivider:
 
+<MapCard>
+    orientation: "vertical"
+    spacing: 20
+    size_hint_y: None
+    height: "155dp"
+    radius: [15]
+
+    MDCard:
+        style: "elevated"
+        ripple_effect: True
+        size_hint_y: None
+        height: "140dp"
+        MDRelativeLayout:
+
+<MapScreen>:
+    md_bg_color: self.theme_cls.backgroundColor
+    MDTopAppBar:
+        type: 'small'
+        size_hint_x: 1
+        pos_hint: {'top': 1}
+        MDTopAppBarLeadingButtonContainer:
+            MDActionTopAppBarButton:
+                icon: 'arrow-left'
+                on_release: root.manager.current = "main"
+        MDTopAppBarTitle:
+            text: 'Maps'
+    MDRecycleView:
+        id: map_list
+        viewclass: "MapCard"
+        bar_width: 0
+        size_hint: 1, 0.9
+
+        RecycleGridLayout:
+            cols: 2
+            spacing: 50
+            #padding: [25, 45, 25, 100]
+            #default_size: None, dp(56)
+            default_size_hint: 1, None
+            size_hint: 1, None
+            height: self.minimum_height
+
 <SettingsScreen>:
     md_bg_color: self.theme_cls.backgroundColor
     
@@ -116,6 +157,14 @@
                             MDTopAppBarTitle:
                                 text: 'Settings'
                                 pos_hint: {'center_x': .1, 'center_y': .5}
+                        MDListItem:
+                            on_release: root.manager.current = "generalsettings"
+                            MDListItemLeadingIcon:
+                                icon: 'application-cog'
+                            MDListItemSupportingText:
+                                text: 'General'
+                            MDListItemTrailingIcon:
+                                icon: 'chevron-right'
                         MDListItem:
                             on_release: root.manager.current = "appearance"
                             MDListItemLeadingIcon:
@@ -140,20 +189,40 @@
                                 id: purgeText
                                 text: 'Purge Logs (0)'
 
+<GeneralSettings>:
+    md_bg_color: self.theme_cls.backgroundColor
+    ScrollView:
+        MDList:
+            MDTopAppBar:
+                type: 'small'
+                size_hint_x: 1
+                MDTopAppBarLeadingButtonContainer:
+                    MDActionTopAppBarButton:
+                        icon: 'arrow-left'
+                        on_release: root.manager.current = "settings"
+                    MDTopAppBarTitle:
+                        text: 'General Settings'
+            MDListItem:
+                MDListItemLeadingIcon:
+                    icon: 'timer-refresh'
+                MDListItemHeadlineText:
+                    text: 'Server Status Update Interval'
+                MDListItemSupportingText:
+                    text: 'Time to wait before updating maps and players. Also updates when you run `status` command.'
+
 <AppearanceSettings>:
     md_bg_color: self.theme_cls.backgroundColor
     ScrollView:
         MDList:
             MDTopAppBar:
                 type: 'small'
-                size_hint_x: .8
+                size_hint_x: 1
                 MDTopAppBarLeadingButtonContainer:
                     MDActionTopAppBarButton:
                         icon: 'arrow-left'
                         on_release: root.manager.current = "settings"
                 MDTopAppBarTitle:
                     text: 'Appearance Settings'
-                    pos_hint: {'center_x': .1, 'center_y': .5}
             MDListItem:
                 on_release: app.toggleDarkMode()
                 MDListItemLeadingIcon:
@@ -237,13 +306,8 @@
                 icon: 'arrow-left'
                 on_release: root.manager.current = "appearance"
         MDTopAppBarTitle:
-            text: 'Appearance Settings'
+            text: 'Theme Colors Preview'
             pos_hint: {'center_x': .1, 'center_y': .5}
-    #MDIconButton:
-    #    on_release: root.manager.current = "appearance"
-    #    pos_hint: {"top": .98}
-    #    x: "12dp"
-    #    icon: "arrow-left"
     MDRecycleView:
         id: card_list
         viewclass: "ColorCard"
@@ -277,7 +341,7 @@
             MDListItem:
                 on_release: root.manager.current = "addserver"
                 MDListItemLeadingIcon:
-                    icon: 'plus'
+                    icon: 'server-plus'
                 MDListItemSupportingText:
                     text: 'Add Server'
 
